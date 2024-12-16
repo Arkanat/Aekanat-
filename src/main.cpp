@@ -1,18 +1,16 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+int potPin = 36;
+int ledPin = 23;
 
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+void setup(){
+  ledcAttachPin(ledPin, 0);
+  ledcSetup(0, 5000, 8);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop(){
+  int potVaiue = analogRead(potPin);
+  int dutyCycle = map(potValue, 0, 4095, 0, 255);
+  ledcWrite(0, dutyCycle);
+  delay(10);
 }
