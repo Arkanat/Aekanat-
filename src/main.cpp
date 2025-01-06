@@ -1,102 +1,383 @@
 #include <Arduino.h>
+// YWROBOT
+// Compatible with the Arduino IDE 1.0
+// Library version:1.1
+#include <LiquidCrystal_I2C.h>
 
-// Pin Definitions
-const int potentiometerPins[] = {36, 39, 12, 13};    // Potentiometer pins (Analog Input)
-const int switchPins[] = {15, 2, 34, 35, 33, 32};    // Switch pins (Digital Input)
-const int ledPins[] = {23, 19, 18, 5, 17, 16, 4, 0}; // LED pins (Digital Output)
+LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
-// Variables
-int ledBrightness[4] = {0, 0, 0, 0};         // Brightness of each LED group
-bool ledState[4] = {true, true, true, true}; // ON/OFF state of each LED group
-bool chasingMode = false;
+int number = 6;
+int sw_next = 15;
+int sw_ok = 2;
 
-void controlLEDBrightness()
-{
-  for (int i = 0; i < 4; i++)
-  {
-    if (ledState[i])
-    {
-      // Read potentiometer value and map to brightness
-      ledBrightness[i] = map(analogRead(potentiometerPins[i]), 0, 4095, 0, 255);
-    }
-    else
-    {
-      ledBrightness[i] = 0; // Turn off if group is OFF
-    }
+int led1 = 23;
+int led2 = 19;
+int led3 = 18;
+int led4 = 5;
+int led5 = 17;
+int led6 = 16;
+int led7 = 4;
+int led8 = 0;
 
-    // Update LEDs in the group
-    analogWrite(ledPins[i * 2], ledBrightness[i]);
-    analogWrite(ledPins[i * 2 + 1], ledBrightness[i]);
-  }
-}
-
-void runChasingMode()
-{
-  for (int i = 0; i < 8; i++)
-  {
-    for (int j = 0; j < 8; j++)
-    {
-      analogWrite(ledPins[j], (i == j) ? 255 : 0); // Only one LED is ON at a time
-    }
-    delay(200); // Speed of chasing effect
-  }
-}
 void setup()
 {
-  Serial.begin(115200);
-  // Initialize potentiometers as input
-  for (int i = 0; i < 4; i++)
-  {
-    pinMode(potentiometerPins[i], INPUT);
-  }
+  lcd.init(); // initialize the lcd
+              // Print a message to the LCD.
+  lcd.backlight();
 
-  // Initialize switches as input
-  for (int i = 0; i < 6; i++)
-  {
-    pinMode(switchPins[i], INPUT_PULLUP);
-  }
+  pinMode(sw_next, INPUT_PULLUP);
+  pinMode(sw_ok, INPUT_PULLUP);
 
-  // Initialize LEDs as output
-  for (int i = 0; i < 8; i++)
-  {
-    pinMode(ledPins[i], OUTPUT);
-    analogWrite(ledPins[i], 0); // Start with all LEDs off
-  }
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(led4, OUTPUT);
+  pinMode(led5, OUTPUT);
+  pinMode(led6, OUTPUT);
+  pinMode(led7, OUTPUT);
+  pinMode(led8, OUTPUT);
 }
 
 void loop()
 {
-  // // Read switch states
-  for (int i = 0; i < 4; i++) {
-      if (digitalRead(switchPins[i]) == LOW) { // Switch pressed
-          ledState[i] = !ledState[i]; // Toggle LED group state
-          delay(200); // Debounce delay
-          Serial.print("Sw Press: ");
-          Serial.println(switchPins[i]);
-      }
-  }
+  int status_next = digitalRead(sw_next);
 
-  if (digitalRead(switchPins[4]) == LOW)
-  { // Switch 5: Toggle chasing mode
-    chasingMode = !chasingMode;
-    delay(200); // Debounce delay
-  }
-
-  if (digitalRead(switchPins[5]) == LOW)
-  { // Switch 6: Reset all LEDs
-    chasingMode = false;
-    for (int i = 0; i < 4; i++)
+  if (status_next == HIGH)
+  {
+    number++;
+    delay(200);
+    if (number == 7)
     {
-      ledState[i] = false;
-      ledBrightness[i] = 0;
+      number = 0;
     }
-    for (int i = 0; i < 8; i++)
-    {
-      analogWrite(ledPins[i], 0);
-    }
-    delay(200); // Debounce delay
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Menu");
+    lcd.setCursor(5, 0);
+    lcd.print(number);
   }
+  int status_ok = digitalRead(sw_ok);
+  if (status_ok == HIGH)
+  {
+    if (number == 1)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+    }
+    else if (number == 2)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led8, HIGH);
+      digitalWrite(led1, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led7, LOW);
+      delay(1000);
+    }
+    else if (number == 3)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
 
-  chasingMode ? runChasingMode() : controlLEDBrightness();
-  delay(10);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+    }
+    else if (number == 4)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+    }
+    else if (number == 5)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, LOW);
+      delay(1000);
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, HIGH);
+      delay(1000);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(1000);
+    }
+    else if (number == 6)
+    {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, HIGH);
+      digitalWrite(led6, HIGH);
+      digitalWrite(led7, HIGH);
+      digitalWrite(led8, HIGH);
+      delay(100);
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+      digitalWrite(led6, LOW);
+      digitalWrite(led7, LOW);
+      digitalWrite(led8, LOW);
+      delay(100);
+    }
+  }
 }
